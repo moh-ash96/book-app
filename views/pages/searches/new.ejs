@@ -2,27 +2,39 @@
 <html lang="en">
 
 <head>
-    <title>Book Collection</title>
+    <%- include('../../layout/head.ejs')%>
+
+        <!-- <title>Book Collection</title> -->
 </head>
 
-<body>
+<body class="container">
     <main>
-        <h4>Search by Title or Author</h4>
+        <!-- <h4>Search by Title or Author</h4> -->
         <form action="/searches" method="post">
-            <input type="text" name="search" placeholder="Enter a title or author" required>
-            <fieldset>
-                <label for="title">
+            <section class="sub-content">
+                <section class="grid-containerT">
+                    <input class="searchInput" type="text" name="search" placeholder="Enter a title or author" required>
+                    <fieldset>
+                        <label class="inpRadio1" for="title">
             <span>Title</span>
             <input type="radio" name="radio" value="title" required>
           </label>
-            </fieldset>
-            <fieldset>
-                <label for="author">
+                    </fieldset>
+                    <fieldset>
+                        <label class="inpRadio2" for="author">
             <span>Author</span>
             <input type="radio" name="radio" value="author" required>
           </label>
-            </fieldset>
-            <button type="submit">Search the Google Books API</button>
+                    </fieldset>
+                    <!-- <fieldset>
+                        <label class="inpRadio2 for=" author ">
+            <span>Author</span>
+            <input type="radio " name="radio " value="author " required>
+          </label>
+            </fieldset> -->
+                    <button class="btn6 ">Search </button>
+                </section>
+            </section>
         </form>
     </main>
 </body>
