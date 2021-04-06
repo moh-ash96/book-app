@@ -14,7 +14,7 @@
         <section>
             <% book.forEach(book=>{%>
                 <section>
-                    <%- include('../../layout/form.ejs',{book:book})%>
+                    <%- include('../../layout/form.ejs',{formAction:"SHOW", book:book})%>
                 </section>
                 <%})%>
         </section>

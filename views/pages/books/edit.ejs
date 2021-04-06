@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <%- include('../../layout/head.ejs')%>
+</head>
+
+<body>
+    <header>
+        <%- include('../../layout/header.ejs')%>
+    </header>
+    <main>
+        <section>
+            <%- include('../../layout/form.ejs',{formAction:"UPDATE",book:book })%>
+        </section>
+    </main>
+</body>
+
+</html>

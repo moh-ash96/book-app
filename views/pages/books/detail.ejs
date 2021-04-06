@@ -21,6 +21,19 @@
             <p class="p3">
                 <%=book.description%>
             </p>
+            <p class="p4">
+                <%=book.isbn%>
+            </p>
+            <section class="btn3">
+                <form action="/edit/<%=book.id%>" method="GET">
+                    <button>Update book</button>
+                </form>
+            </section>
+            <section class="btn4">
+                <form action="/delete/<%=book.id%>?_method=DELETE" method="POST">
+                    <button>Delete book</button>
+                </form>
+            </section>
         </section>
     </main>
 </body>
