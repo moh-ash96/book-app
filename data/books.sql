@@ -4,5 +4,6 @@ CREATE TABLE books (
   image_url VARCHAR(2048),
   title VARCHAR(255),
   author VARCHAR(255),
-  description TEXT
+  description TEXT,
+  ISBN VARCHAR(255)
 );

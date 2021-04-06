@@ -1,14 +1,25 @@
-<% 
- let type = "hidden" ;
- let url = `${book.image_url}`;
- let title = `${book.title}`;
- let author = `${book.author}`;
- let description = `${book.description}`;
- let classStyle = "grid-containerF";
- let btn5 = "btn2";
+<!-- 
+//  let type = "hidden" ;
+//  let url = `${book.image_url}`;
+//  let title = `${book.title}`;
+//  let author = `${book.author}`;
+//  let description = `${book.description}`;
+//  let classStyle = "grid-containerF";
+//  let btn5 = "btn2";
+  -->
+
+<% let action = formAction === "UPDATE" ? `/update/${book.id}?_method=PUT`:'/books';
+ let type = formAction === "UPDATE" ? "text": "hidden" ;
+ let button = formAction === "UPDATE" ? "Update details": "Add to my Shelfbook";
+ let url = formAction === "UPDATE" ? "" : `${book.image_url}`;
+ let title = formAction === "UPDATE" ?  "" : `${book.title}`;
+ let author = formAction === "UPDATE" ? "" : `${book.author}`;
+ let description = formAction === "UPDATE" ? "" : `${book.description}`;
+ let classStyle = formAction === "UPDATE" ? "grid-containerT" : "grid-containerF";
+ let btn5 = formAction === "UPDATE" ? "btn5" : "btn2";
  %>
 
-    <form action="/books" method="POST">
+    <form action="<%=action%>" method="POST">
         <section class="sub-content">
             <section class="<%=classStyle%>">
                 <input class="inp1" type="<%=type%>" name="img" value="<%=book.image_url%>" placeholder="<%=book.image_url%>" /><img class="Bookimg" src="<%=url%>">
@@ -25,7 +36,7 @@
                     <%=description%>
                 </p>
                 <input class="inp5" type="<%=type%>" name="isbn" value="<%=book.isbn%>" placeholder="<%=book.isbn%>" />
-                <button type="submit" class="btn2"> Add to myshelf book</button>
+                <button type="submit" class="<%=btn5%>"><%=button%></button>
             </section>
         </section>
     </form>
