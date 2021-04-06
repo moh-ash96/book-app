@@ -5,19 +5,76 @@ require('dotenv').config();
 
 // Load modules into our script 
 const express = require('express');
-const superagent = require('superagent')
-    // App setup 
+const superagent = require('superagent');
+const pg = require('pg');
+const DATABASE_URL = process.env.DATABASE_URL;
+const NODE_ENV = process.env.NODE_ENV;
+
+const options = NODE_ENV === 'production' ? { connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } } : { connectionString: DATABASE_URL };
+// App setup 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const client = new pg.Client(options);
+client.on('error', (err) => console.log(err));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(express.static('./public'))
-app.set('view engine', 'ejs'); // Set the view engine for server-side templating
+app.use('/public', express.static('public'));
+app.set('view engine', 'ejs'); // Set the view engine for server-side 
 
 
-app.get('/', (req, res) => {
-    res.render('pages/index'); // views/index.ejs  'views/' + name + '.' + engineExt
-})
+
+// console.log(superagent)
+
+
+app.get('/', (req, res) => { // render the index.ejs from DB
+    const SQL = 'SELECT * FROM books;';
+    client
+        .query(SQL)
+        .then((results) => {
+            res.render('pages/index', { book: results.rows });
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        });
+});
+
+
+app.get('/books/:id', (req, res) => { // render the datails of a book
+    const SQL = 'SELECT * FROM books WHERE id=$1;';
+    const values = [req.params.id];
+    console.log(values);
+    client
+        .query(SQL, values)
+        .then((results) => {
+            // console.log(results)
+            res.render('pages/books/show', { book: results.rows[0] });
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        });
+});
+
+app.post('/books', (req, res) => { // Insert books into DB if not
+
+    // let values = [req.body.isbn];
+    let SQL = 'INSERT INTO books (image_url,title,author,description) VALUES ($1,$2,$3,$4) RETURNING id ;';
+    let values = [req.body.img, req.body.title, req.body.author, req.body.description];
+    client.query(SQL, values).then((results) => {
+            // if (results.rows.length > 0) {
+            // res.redirect(`/books/${results.rows[0].id}`);
+            //  else {
+            res.redirect(`/books/${results.rows[0].id}`);
+            // console.log("inside insert")
+            // let sqlQuery = 'SELECT * FROM books'
+            // client.query(sqlQuery).then((results) => {
+            //         console.log('data returned back from db ', results);
+
+        })
+        .catch((err) => {
+            errorHandler(err, req, res);
+        })
+        // }
+});
 
 app.get('/searches/new', showForm);
 
@@ -51,10 +108,10 @@ function createSearch(request, response) {
         .then(apiResponse => {
             // response.send(apiResponse.body.items)
             const Books = apiResponse.body.items.map(data => {
-                console.log(data.id)
+                // console.log(data.id);
                 return new Book(data);
             })
-            response.render('pages/searches/show', { books: Books })
+            response.render('pages/searches/show', { book: Books })
         })
         .catch(err => errorHandler(err, request, response))
 }
@@ -64,15 +121,17 @@ function createSearch(request, response) {
 
 // constructor books
 function Book(data) {
-    this.image_url = data.volumeInfo.imageLinks.thumbnail ? data.volumeInfo.imageLinks.thumbnail : 'https://i.imgur.com/J5LVHEL.jpg';
+    this.image_url = data.volumeInfo.imageLinks ? data.volumeInfo.imageLinks.thumbnail : 'https://i.imgur.com/J5LVHEL.jpg';
     this.title = data.volumeInfo.title ? data.volumeInfo.title : "DEFULT TITLE";
     this.author = data.volumeInfo.authors ? data.volumeInfo.authors : "DEFULT AUTHOR";
     this.description = data.volumeInfo.description ? data.volumeInfo.description : "DEFULT DESCRIPTION";
+    // this.isbn = (data.volumeInfo.industryIdentifiers && data.volumeInfo.industryIdentifiers[0].identifier) ? data.volumeInfo.industryIdentifiers[0].identifier : "NO ISBN AVAILABLE"
 }
 
 function errorHandler(err, req, res) {
     res.status(500).send(err);
 }
 
-app.listen(PORT, () =>
-    console.log(`app is listening on ${PORT}`))
+client.connect()
+    .then(app.listen(PORT, () =>
+        console.log(`app is listening on ${PORT}`)))

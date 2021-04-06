@@ -2,14 +2,30 @@
 <html lang="en">
 
 <head>
-    <title>Book Collection</title>
-    <link rel="stylesheet" href="/main.css">
+    <%- include('../layout/head.ejs')%>
 </head>
 
-<body>
-    <main>
-        <h4>My Book Collection</h4>
-
+<body class="container">
+    <header class='one a'>
+        <%- include('../layout/header.ejs')%>
+            <section class="length">
+                <p>
+                    <%=book.length%> books</p>
+            </section>
+    </header>
+    <main class="sub-content">
+        <% book.forEach(item=>{%>
+            <section class="grid-container">
+                <img class="Bookimg" src="<%=item.image_url%>">
+                <p class="p1">
+                    <%=item.title%>
+                </p>
+                <p class="p2">
+                    <%=item.author%>
+                </p>
+                <button class="btn1"><a class="bookBtn" href="/books/<%=item.id%>">View Details</a></button>
+            </section>
+            <%})%>
     </main>
 </body>
 

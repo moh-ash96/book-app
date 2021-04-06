@@ -2,26 +2,22 @@
 <html lang="en">
 
 <head>
-    <title>Book Collection</title>
+    <%- include('../../layout/head.ejs')%>
+        <!-- <title>Book Collection</title> -->
 </head>
 
-<body>
+<body class="container">
+    <header class='one a'>
+        <%- include('../../layout/header.ejs')%>
+    </header>
     <main>
-        <% books.forEach( result => { %>
-            <img src="<%= result.image_url  %>">
-            <p>
-                <%= result.title %>
-            </p>
-            <h3>
-                <%= result.author %>
-            </h3>
-            <p>
-                <%= result.description %>
-            </p>
-            <p>
-                <%= result.isbn %>
-            </p>
-            <% }) %>
+        <section>
+            <% book.forEach(book=>{%>
+                <section>
+                    <%- include('../../layout/form.ejs',{book:book})%>
+                </section>
+                <%})%>
+        </section>
     </main>
 </body>
 
