@@ -7,6 +7,8 @@ require('dotenv').config();
 const express = require('express');
 const superagent = require('superagent');
 const pg = require('pg');
+const cors = require('cors');
+
 const DATABASE_URL = process.env.DATABASE_URL;
 const NODE_ENV = process.env.NODE_ENV;
 
@@ -16,6 +18,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const client = new pg.Client(options);
 client.on('error', (err) => console.log(err));
+app.use(cors()); //will respond to any request and allow access to our api from another domain
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use('/public', express.static('public'));
