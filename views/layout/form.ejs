@@ -1,13 +1,3 @@
-<!-- 
-//  let type = "hidden" ;
-//  let url = `${book.image_url}`;
-//  let title = `${book.title}`;
-//  let author = `${book.author}`;
-//  let description = `${book.description}`;
-//  let classStyle = "grid-containerF";
-//  let btn5 = "btn2";
-  -->
-
 <% let action = formAction === "UPDATE" ? `/update/${book.id}?_method=PUT`:'/books';
  let type = formAction === "UPDATE" ? "text": "hidden" ;
  let button = formAction === "UPDATE" ? "Update details": "Add to my Shelfbook";
