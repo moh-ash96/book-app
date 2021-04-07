@@ -1,19 +1,18 @@
-'use strcit'
-
-// Load environment variables module
-require('dotenv').config();
+'use strict'
 
 // Load modules into our script 
+require('dotenv').config();
 const express = require('express');
 const superagent = require('superagent');
 const pg = require('pg');
 const methodOverride = require('method-override');
 const cors = require('cors');
 
+// Load Environment variables
 const DATABASE_URL = process.env.DATABASE_URL;
 const NODE_ENV = process.env.NODE_ENV;
+const options = NODE_ENV === 'production' ? { connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } } : { connectionString: DATABASE_URL }; // to solve SSL issue with Heroku
 
-const options = NODE_ENV === 'production' ? { connectionString: DATABASE_URL, ssl: { rejectUnauthorized: false } } : { connectionString: DATABASE_URL };
 // App setup 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -21,17 +20,15 @@ const client = new pg.Client(options);
 client.on('error', (err) => console.log(err));
 app.use(cors()); //will respond to any request and allow access to our api from another domain
 app.use(methodOverride('_method')); //tell the server to override post method to listen to UPDATE/DELETE queries
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-app.use('/public', express.static('public'));
+app.use(express.urlencoded({ extended: true })); // ?? 
+app.use(express.json()); // ?? 
+app.use('/public', express.static('public')); // to serve public folders into our app
 app.set('view engine', 'ejs'); // Set the view engine for server-side 
 
 
+// API routes
 
-// console.log(superagent)
-
-
-app.get('/', (req, res) => { // render the index.ejs from DB
+app.get('/', (req, res) => { // render the index.ejs from DB (Main Page)
     const SQL = 'SELECT * FROM books;';
     client
         .query(SQL)
@@ -44,14 +41,29 @@ app.get('/', (req, res) => { // render the index.ejs from DB
 });
 
 
-app.get('/books/:id', (req, res) => { // render the datails of a book
+app.get('/edit/:id', (req, res) => { // render the edit.ejs (form)
     const SQL = 'SELECT * FROM books WHERE id=$1;';
     const values = [req.params.id];
-    // console.log(values);
+    console.log(values)
     client
         .query(SQL, values)
         .then((results) => {
-            // console.log(results)
+            console.log(results)
+            res.render('pages/books/edit', { book: results.rows[0] });
+            // res.send("Hello");
+        })
+        .catch((err) => {
+            console.log(err)
+            errorHandler(err, req, res);
+        });
+});
+
+app.get('/books/:id', (req, res) => { // render the datails of a book
+    const SQL = 'SELECT * FROM books WHERE id=$1;';
+    const values = [req.params.id];
+    client
+        .query(SQL, values)
+        .then((results) => {
             res.render('pages/books/show', { book: results.rows[0] });
         })
         .catch((err) => {
@@ -61,24 +73,14 @@ app.get('/books/:id', (req, res) => { // render the datails of a book
 
 app.post('/books', (req, res) => { // Insert books into DB if not
 
-    // let values = [req.body.isbn];
-    let SQL = 'INSERT INTO books (image_url,title,author,description) VALUES ($1,$2,$3,$4) RETURNING id ;';
+    let SQL = 'INSERT INTO books (image_url,title,author,description) VALUES ($1,$2,$3,$4) RETURNING * ;';
     let values = [req.body.img, req.body.title, req.body.author, req.body.description];
     client.query(SQL, values).then((results) => {
-            // if (results.rows.length > 0) {
-            // res.redirect(`/books/${results.rows[0].id}`);
-            //  else {
             res.redirect(`/books/${results.rows[0].id}`);
-            // console.log("inside insert")
-            // let sqlQuery = 'SELECT * FROM books'
-            // client.query(sqlQuery).then((results) => {
-            //         console.log('data returned back from db ', results);
-
         })
         .catch((err) => {
             errorHandler(err, req, res);
         })
-        // }
 });
 
 app.get('/searches/new', showForm);
@@ -96,24 +98,11 @@ function showForm(req, res) {
 function createSearch(request, response) {
     let url = 'https://www.googleapis.com/books/v1/volumes?q=';
 
-    console.log(request.body);
-    console.log(request.body.search);
-    console.log(request.body.radio)
-        // console.log(request.body.search[1]);
-        // console.log(request.body.search[0]);
-
-    // can we convert this to ternary?
     request.body.radio === 'title' ? url += `intitle=${request.body.search}` : url += `inauthor=${request.body.search}`;
-    console.log(url);
-    // request.body.radio === 'author' ?  : '';
-    // if (request.body.search[1] === 'title') { url += `+intitle:${request.body.search[0]}`; }
-    // if (request.body.search[1] === 'author') { url += `+inauthor:${request.body.search[0]}`; }
 
     superagent.get(url)
         .then(apiResponse => {
-            // response.send(apiResponse.body.items)
             const Books = apiResponse.body.items.map(data => {
-                // console.log(data.id);
                 return new Book(data);
             })
             response.render('pages/searches/show', { book: Books })
@@ -122,27 +111,16 @@ function createSearch(request, response) {
 }
 
 
-app.get('/edit/:id', (req, res) => { // render the edit.ejs (form)
-    const SQL = 'SELECT * FROM books WHERE id=$1;';
-    const values = [req.params.id];
-    console.log(values)
-    client
-        .query(SQL, values)
-        .then((results) => {
-            console.log(resutls)
-            res.render('pages/books/edit', { book: results.rows[0] });
-        })
-        .catch((err) => {
-            errorHandler(err, req, res);
-        });
-});
 
 app.put('/update/:id', (req, res) => {
-    const SQL = 'UPDATE books SET image_url=$1,title=$2,author=$3,description=$4,isbn=$5 WHERE id=$6;';
-    const values = [req.body.img, req.body.title, req.body.author, req.body.description, req.body.isbn, req.params.id];
+    const SQL = 'UPDATE books SET image_url=$1,title=$2,author=$3,description=$4 WHERE id=$5;';
+    const values = [req.body.img, req.body.title, req.body.author, req.body.description, req.params.id];
     client
         .query(SQL, values).then(() => res.redirect(`/books/${req.params.id}`))
-        .catch((err) => errorHandler(err, req, res))
+        .catch((err) => {
+            console.log(err)
+            errorHandler(err, req, res)
+        })
 });
 
 //Deleting
@@ -165,8 +143,7 @@ function Book(data) {
     this.title = data.volumeInfo.title ? data.volumeInfo.title : "DEFULT TITLE";
     this.author = data.volumeInfo.authors ? data.volumeInfo.authors : "DEFULT AUTHOR";
     this.description = data.volumeInfo.description ? data.volumeInfo.description : "DEFULT DESCRIPTION";
-    // this.isbn = (data.volumeInfo.industryIdentifiers && data.volumeInfo.industryIdentifiers[0].identifier) ? data.volumeInfo.industryIdentifiers[0].identifier : "NO ISBN AVAILABLE"
-    this.isbn = (data.volumeInfo.industryIdentifiers) ? data.volumeInfo.industryIdentifiers[0].identifier : `Unknown ISBN`;
+    this.isbn = (data.volumeInfo.industryIdentifiers) ? data.volumeInfo.industryIdentifiers[0].type + ' ' + data.volumeInfo.industryIdentifiers[0].identifier : `Unknown ISBN`;
 }
 
 function errorHandler(err, req, res) {
